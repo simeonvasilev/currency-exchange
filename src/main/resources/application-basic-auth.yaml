@@ -1,0 +1,4 @@
+currencyexchange:
+  basic-auth:
+    admin: admin
+    reader: reader

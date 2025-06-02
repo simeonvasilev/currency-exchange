@@ -1,0 +1,236 @@
+openapi: 3.0.3
+info:
+  title: Currency Exchange API
+  version: 1.0.0
+  description: Simple demo application exposing rest endpoints for currency exchange operations
+  contact:
+    name: Simeon Vasilev
+    email: simeonvasilev03@gmail.com
+
+servers:
+  - url: 'http://localhost:8080/api/currency-exchange/v1'
+
+tags:
+  - name: exchange-rate
+    description: get endpoint that return exchange rate between two currencies
+  - name: currency-conversion
+    description: get endpoint converting particular amount of money from one to another currency
+  - name: conversion-history
+    description: get endpoint that provides read access to already executed currency conversions(history)
+
+paths:
+  /exchange-rate:
+    get:
+      tags:
+        - exchange-rate
+      description: Get exchanage rate between pair of currencies.
+      operationId: getExchangeRate
+      parameters:
+        - name: currency1
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 3
+        - name: currency2
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 3
+      responses:
+        '200':
+          description: Return the exchanage rate between provided currencies.
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Unexpected error occured.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+
+  /currency-conversion:
+    get:
+      tags:
+        - currency-conversion
+      description: Convert and return the converted amount in the target currency.
+      operationId: convertCurrency
+      parameters:
+        - name: amount
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+        - name: sourceCurrency
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 3
+        - name: targetCurrency
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 3
+      responses:
+        '200':
+          description: Return the converted amount in the target currency and unique transaction id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrencyConversionMinDTO'
+        '500':
+          description: Unexpected error occured.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+
+  /conversion-history:
+    get:
+      tags:
+        - conversion-history
+      description: Get all executed conversions filtered either by transaction date or id.
+      operationId: getTransactionsHistory
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: transactionId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Return all matching transactions. Could be an empty list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrencyConversionHistoryPageDTO'
+        '500':
+          description: Unexpected error occured.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+
+
+components:
+  schemas:
+    CurrencyConversionHistoryPageDTO:
+      type: object
+      properties:
+        totalPages:
+          type: integer
+        totalElements:
+          type: integer
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurrencyConversionDTO'
+
+    CurrencyConversionDTO:
+      type: object
+      properties:
+        id:
+          type: string
+        amount:
+          type: number
+          format: double
+        sourceCurrency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        targetCurrency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        createDate:
+          type: string
+          format: date-time
+        exchangeRate:
+          type: number
+          format: double
+
+    CurrencyConversionMinDTO:
+      type: object
+      properties:
+        id:
+          type: string
+        amount:
+          type: number
+          format: double
+
+    ExchangeRateResponseDTO:
+      type: object
+      properties:
+        success:
+          type: boolean
+        timestamp:
+          type: integer
+          format: int64
+        source:
+          type: string
+        quotes:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+        error:
+          $ref: '#/components/schemas/ErrorCode'
+
+    ErrorCode:
+      type: object
+      properties:
+        code:
+          type: integer
+
+    ErrorDTO:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/ErrorType'
+        title:
+          type: string
+        detail:
+          type: string
+      required:
+        - type
+        - title
+        - detail
+
+    ErrorType:
+      type: string
+      enum:
+        - access-denied
+        - missing-parametar
+        - validation-error
+        - bad-request
+        - unexpected-error

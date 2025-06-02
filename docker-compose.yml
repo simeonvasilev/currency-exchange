@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  currency-exchange:
+    container_name: currency-exchange
+    image: currency-exchange
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8090:8080'
+      - '5009:5009'
+    environment:
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5009

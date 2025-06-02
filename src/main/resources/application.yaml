@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: exchange-currency
+
+
+  datasource:
+    url: jdbc:h2:mem:currencyexchangedb
+    driverClassName: org.h2.Driver
+    username: test
+    password: test
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create
+    open-in-view: false
+    show-sql: false
+  h2:
+    console:
+      enabled: true
+
+
+currencylayer:
+  api:
+    accessKey: 832b7f7825c6fdfbe509e5fbcf3c544c
+    url: https://api.currencylayer.com/
